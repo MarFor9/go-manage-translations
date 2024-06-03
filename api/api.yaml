@@ -1,0 +1,156 @@
+openapi: 3.1.0
+info:
+  title: Go template for OpenAPI 3.1
+  description: |
+    Go template - implementation of a simple API to manage translations.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8099
+    description: Local
+
+tags:
+  - name: Translation
+    description: Operations about translations
+  - name: HealthCheck
+    description: Operations about check if the service is up
+
+paths:
+  /health:
+    get:
+      summary: Check if the service is up
+      operationId: Check
+      tags:
+        - HealthCheck
+      responses:
+        '200':
+          description: OK
+
+  /v1/translations:
+    get:
+      summary: Get all translations
+      operationId: GetAllTranslations
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Translation
+      parameters:
+        - in: query
+          name: language_code
+          required: true
+          schema:
+            type: string
+          description: Language code to filter
+      responses:
+        '200':
+          description: Translation collection
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      summary: Create a new translation
+      operationId: CreateTranslation
+      security:
+        - ApiKeyAuth: [ ]
+      tags:
+        - Translation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTranslationRequest'
+      responses:
+        '201':
+          description: Translation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UUIDResponse'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '500':
+          $ref: '#/components/responses/500'
+
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+
+  schemas:
+    CreateTranslationRequest:
+      type: object
+      required:
+        - languageCode
+        - key
+        - translation
+      properties:
+        languageCode:
+          type: string
+          example: 'en'
+        key:
+          type: string
+          example: 'input_name'
+        translation:
+          type: string
+          example: 'Name'
+
+    UUIDResponse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          x-omitempty: false
+          example: c79c9c04-8c98-40f2-a7a0-5eeabf08d836
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+
+    GenericErrorMessage:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: 'Something happen'
+
+  responses:
+    '400':
+      description: 'Bad Request'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorMessage'
+    '401':
+      description: 'Unauthorized'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorMessage'
+    '500':
+      description: 'Internal Server error'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorMessage'

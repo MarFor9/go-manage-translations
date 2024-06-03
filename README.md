@@ -1,1 +1,1 @@
-# go-template
+# Go template - implementation of a simple API to manage translations.
